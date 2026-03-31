@@ -78,7 +78,9 @@ void keyboard_callback (lv_indev_t * indev, lv_indev_data_t * data)
     // else if (ev.code == 8) data->key = '4';
     // else if (ev.code == 13) data->key = '5';
     // else if (ev.code == 18) data->key = '6';
-    // else if (ev.code == 9) data->key = '9';
+    // else if (ev.code == 9) data->key = '7';
+    // else if (ev.code == 14) data->key = '8';
+    // else if (ev.code == 19) data->key = '9';
     // else if (ev.code == 10) data->key = '0';
     // else if (ev.code == 5) data->key = ' ';
     // else if (ev.code == 20) data->key = LV_KEY_ENTER;
@@ -107,13 +109,6 @@ void keyboard_callback (lv_indev_t * indev, lv_indev_data_t * data)
 
     last_state = LV_INDEV_STATE_PRESSED;
     data->state = last_state;
-}
-
-static uint32_t tick_cb(void)
-{
-    struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    return tv.tv_sec + tv.tv_nsec / 1000000;
 }
 
 void ta_event_cb(lv_event_t * e)
@@ -149,7 +144,8 @@ int main(int argc, char * argv[], char * env[])
 
     lv_init();
 
-    lv_tick_set_cb(tick_cb);
+    // lv_font_t * font = lv_tiny_ttf_create_file("F:PYekan.ttf", 24);
+    lv_font_t * font = lv_tiny_ttf_create_file("F:vazirmatn-fa.ttf", 24);
 
     lv_group_t * default_group = lv_group_create();
     lv_group_set_default(default_group);
@@ -158,22 +154,27 @@ int main(int argc, char * argv[], char * env[])
     lv_linux_fbdev_set_file(display, "/dev/fb0");
     lv_display_set_default(display);
     // lv_display_set_rotation(display, LV_DISPLAY_ROTATION_90);
+    // printf("w: %d, h:%d\n", lv_display_get_horizontal_resolution(display), lv_display_get_vertical_resolution(display));
 
     lv_indev_t * keypad = lv_indev_create();
     lv_indev_set_type(keypad, LV_INDEV_TYPE_KEYPAD);
     lv_indev_set_read_cb(keypad, keyboard_callback);
     lv_indev_set_group(keypad, lv_group_get_default());
 
+    // lv_demo_benchmark();
+
     // lv_demo_music();
+    // lv_demo_widgets();
 
     // lv_demo_keypad_encoder();
 
     // lv_obj_t * ta = lv_textarea_create(lv_screen_active());
     // lv_textarea_set_placeholder_text(ta, "سلام کیبورد");
+    // lv_textarea_set_text(ta, "سلام کیبورد");
     // lv_obj_align(ta, LV_ALIGN_TOP_MID, 0, 10);
     // lv_obj_set_size(ta, lv_pct(90), lv_pct(20));
     // lv_textarea_set_align(ta, LV_TEXT_ALIGN_RIGHT);
-    // lv_obj_set_style_text_font(ta, &lv_font_dejavu_16_persian_hebrew, 0);
+    // lv_obj_set_style_text_font(ta, font, 0);
     //
     // lv_obj_t * kb = lv_keyboard_create(lv_screen_active());
     // lv_obj_set_style_text_font(kb, &lv_font_dejavu_16_persian_hebrew, 0);
@@ -195,10 +196,11 @@ int main(int argc, char * argv[], char * env[])
 
     lv_group_delete(default_group);
 
+    lv_tiny_ttf_destroy(font);
+
     lv_deinit();
 
     if (keyboard_fd > 0) close(keyboard_fd);
 
     return 0;
 }
-

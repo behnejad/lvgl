@@ -43,5 +43,9 @@ if(MSVC AND BUILD_SHARED_LIBS)
     PRIVATE "LV_ATTRIBUTE_EXTERN_DATA=__declspec(dllexport)")
 endif()
 
+#set(CMAKE_C_COMPILER /home/user/Desktop/sunyard/sunyard-tools/le_arm11_external_20090506/bin/arm-brcm-linux-gnueabi-gcc1)
+#set(CMAKE_CXX_COMPILER /home/user/Desktop/sunyard/sunyard-tools/le_arm11_external_20090506/bin/arm-brcm-linux-gnueabi-g++1)
+#set(CMAKE_C_STANDARD 99)
+
 add_executable(main main.c)
 target_link_libraries(main PRIVATE lvgl::lvgl lvgl::demos lvgl::examples)
