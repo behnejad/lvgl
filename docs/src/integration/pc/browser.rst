@@ -14,7 +14,8 @@ There are multiple ways to view LVGL UIs in a browser or even develop UIs direct
 Compile UIs to HTML (Emscripten)
 ********************************
 
-`Emscripten <https://emscripten.org/>`__ can compile C source files into a single HTML output that runs in a browser. This is a convenient way to share developed UIs with stakeholders, as they can test the interface without needing a developer setup.
+`Emscripten <https://emscripten.org/>`__ can compile C source files into a single HTML output that runs in a browser.
+This is a convenient way to share developed UIs with stakeholders, as they can test the interface without needing a developer setup.
 
 Instead of producing a binary, Emscripten produces WebAssembly, which is supported across modern browsers.
 

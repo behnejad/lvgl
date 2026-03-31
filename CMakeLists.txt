@@ -48,4 +48,4 @@ endif()
 #set(CMAKE_C_STANDARD 99)
 
 add_executable(main main.c)
-target_link_libraries(main PRIVATE lvgl::lvgl lvgl::demos lvgl::examples)
+target_link_libraries(main PRIVATE lvgl::lvgl lvgl::demos lvgl::examples SDL2)

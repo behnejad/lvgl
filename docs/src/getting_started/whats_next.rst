@@ -4,7 +4,7 @@
 What's Next?
 ============
 
-There are several good ways ways to gain deeper knowledge of LVGL.  Here is one
+There are several good ways to gain deeper knowledge of LVGL. Here is one
 recommended order of documents to read and things to play with while you are
 advancing your knowledge:
 
