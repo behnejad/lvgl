@@ -175,11 +175,12 @@ int main(int argc, char * argv[], char * env[])
     // lv_demo_keypad_encoder();
 
     lv_obj_t * ta = lv_textarea_create(lv_screen_active());
-    lv_textarea_set_placeholder_text(ta, "سلام کیبورد");
-    lv_textarea_set_text(ta, "سلام کیبورد");
+    lv_textarea_set_placeholder_text(ta, "سلام");
+    lv_textarea_set_text(ta, "گچ پژ آلف");
     lv_obj_align(ta, LV_ALIGN_TOP_MID, 0, 10);
     lv_obj_set_size(ta, lv_pct(90), lv_pct(20));
     lv_textarea_set_align(ta, LV_TEXT_ALIGN_RIGHT);
+    lv_obj_set_style_base_dir(ta, LV_BASE_DIR_RTL, 0);
     lv_obj_set_style_text_font(ta, font, 0);
 
     lv_obj_t * kb = lv_keyboard_create(lv_screen_active());
