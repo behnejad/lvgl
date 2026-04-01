@@ -11,7 +11,7 @@
 #include "examples/lv_examples.h"
 #include "demos/lv_demos.h"
 
-
+// -------------------------------------------------------
 static int keyboard_fd;
 enum {KEY_RELEASE, KEY_PRESS, KEY_REPEAT};
 char char_keys[2][49] = {
@@ -112,6 +112,147 @@ void keyboard_callback (lv_indev_t * indev, lv_indev_data_t * data)
     data->state = last_state;
 }
 
+int keyboard_init(void * fd)
+{
+    *(int *)fd = open("/dev/input/event3", O_RDONLY | O_CLOEXEC);
+    if (*(int *)fd > 0)
+    {
+        int fl = fcntl(*(int *)fd, F_GETFL, NULL);
+        if (fl >= 0)
+        {
+            if (fcntl(*(int *)fd, F_SETFL, fl | O_NONBLOCK) >= 0)
+                return 0;
+        }
+
+        close(*(int *)fd);
+        *(int *)fd = -1;
+        return -1;
+    }
+    return -1;
+}
+
+void keyboard_deinit(void * fd)
+{
+    if (*(int *)fd)
+    {
+        close(*(int *)fd);
+        *(int *)fd = -1;
+    }
+}
+// -------------------------------------------------------
+static lv_font_t * font_default = NULL;
+int font_init(void * font)
+{
+    // *(lv_font_t **)font = lv_tiny_ttf_create_file("F:PYekan.ttf", 24);
+    *(lv_font_t **)font = lv_tiny_ttf_create_file("F:vazirmatn-fa.ttf", 24);
+    return *(lv_font_t **)font ? 0 : -1;
+}
+void font_deinit(void * font)
+{
+    lv_tiny_ttf_destroy(*(lv_font_t **)font);
+}
+// -------------------------------------------------------
+static lv_group_t * group_default = NULL;
+int group_init(void * group)
+{
+    if (lv_group_get_default() == NULL)
+    {
+        *(lv_group_t **)group = lv_group_create();
+        lv_group_set_default(*(lv_group_t **)group);
+        return*(lv_group_t **)group ? 0 : -1;
+    }
+    return 0;
+}
+void group_deinit(void * group)
+{
+    if (*(lv_group_t **)group != NULL)
+        lv_group_delete(*(lv_group_t **)group);
+}
+// -------------------------------------------------------
+static lv_indev_t * keypad = NULL;
+int keypad_init(void * ptr)
+{
+    *(lv_indev_t **)ptr = lv_indev_create();
+    lv_indev_set_type(*(lv_indev_t **)ptr, LV_INDEV_TYPE_KEYPAD);
+    lv_indev_set_read_cb(*(lv_indev_t **)ptr, keyboard_callback);
+    lv_indev_set_group(*(lv_indev_t **)ptr, lv_group_get_default());
+    return 0;
+}
+void keypad_deinit(void * ptr)
+{
+    lv_indev_delete(*(lv_indev_t **) ptr);
+}
+// -------------------------------------------------------
+static lv_disp_t * display_fb = NULL;
+int fb_init(void * disp)
+{
+    *(lv_disp_t **)disp = lv_linux_fbdev_create();
+    if (*(lv_disp_t **)disp)
+    {
+        if (lv_linux_fbdev_set_file(*(lv_disp_t **)disp, "/dev/fb0") == LV_RESULT_OK)
+        {
+            lv_display_set_default(*(lv_disp_t **)disp);
+            // lv_display_set_rotation(*(lv_disp_t **)disp, LV_DISPLAY_ROTATION_90);
+            printf("display-> w: %d, h:%d\n",
+                lv_display_get_horizontal_resolution(*(lv_disp_t **)disp),
+                lv_display_get_vertical_resolution(*(lv_disp_t **)disp));
+            return 0;
+        }
+        lv_display_delete(*(lv_disp_t **)disp);
+        *(lv_disp_t **)disp = NULL;
+    }
+    return *(lv_disp_t **)disp ? 0 : -1;
+}
+void fb_deinit(void * disp)
+{
+    lv_display_delete(*(lv_disp_t **)disp);
+}
+// -------------------------------------------------------
+struct sdl
+{
+    lv_display_t * display;
+    lv_indev_t * mouse;
+    lv_indev_t * mouse_wheel;
+    lv_indev_t * keyboard;
+} sdl = {0};
+int sdl_init(void * sdl)
+{
+    ((struct sdl *)sdl)->display = lv_sdl_window_create(800, 600);
+    ((struct sdl *)sdl)->mouse = lv_sdl_mouse_create();
+    ((struct sdl *)sdl)->mouse_wheel = lv_sdl_mousewheel_create();
+    ((struct sdl *)sdl)->keyboard = lv_sdl_keyboard_create();
+    return 0;
+}
+void sdl_deinit(void * sdl)
+{
+    lv_sdl_quit();
+}
+// -------------------------------------------------------
+int mlv_init(void * mlv)
+{
+    lv_init();
+    return 0;
+}
+void mlv_deinit(void * mlv)
+{
+    lv_deinit();
+}
+// -------------------------------------------------------
+struct
+{
+    void * data;
+    int (* init)(void * data);
+    void (* deinit)(void * data);
+} init_systems[] = {
+    {NULL, mlv_init, mlv_deinit},
+    {&font_default, font_init, font_deinit},
+    {&group_default, group_init, group_deinit},
+    // {&display_fb, fb_init, fb_deinit},
+    // {&keyboard_fd, keyboard_init, keyboard_deinit},
+    // {&keypad, keypad_init, keypad_deinit},
+    {&sdl, sdl_init, sdl_deinit},
+};
+
 void ta_event_cb(lv_event_t * e)
 {
     lv_event_code_t code = lv_event_get_code(e);
@@ -134,45 +275,22 @@ void ta_event_cb(lv_event_t * e)
 int main(int argc, char * argv[], char * env[])
 {
     // sleep(3);
+    for (int i = 0; i < sizeof(init_systems)/sizeof(init_systems[0]); i++)
+    {
+        if (init_systems[i].init(init_systems[i].data) != 0)
+        {
+            for (int j = 0; j >= 0; j--)
+                init_systems[i].deinit(init_systems[i].data);
 
-    // keyboard_fd = open("/dev/input/event0", O_RDONLY | O_CLOEXEC);
-    // if (keyboard_fd > 0)
-    // {
-    //     int fl = fcntl(keyboard_fd, F_GETFL, NULL);
-    //     if (fl >= 0)
-    //         fcntl(keyboard_fd, F_SETFL, fl | O_NONBLOCK);
-    // }
-
-    lv_init();
-
-    lv_display_t * display = lv_sdl_window_create(800, 600);
-    lv_indev_t * mouse = lv_sdl_mouse_create();
-    lv_indev_t * mouse_wheel = lv_sdl_mousewheel_create();
-    lv_indev_t * keyboard = lv_sdl_keyboard_create();
-
-    // lv_font_t * font = lv_tiny_ttf_create_file("F:PYekan.ttf", 24);
-    lv_font_t * font = lv_tiny_ttf_create_file("F:vazirmatn-fa.ttf", 24);
-
-    lv_group_t * default_group = lv_group_create();
-    lv_group_set_default(default_group);
-
-    // lv_disp_t * display = lv_linux_fbdev_create();
-    // lv_linux_fbdev_set_file(display, "/dev/fb0");
-    // lv_display_set_default(display);
-    // lv_display_set_rotation(display, LV_DISPLAY_ROTATION_90);
-    // printf("w: %d, h:%d\n", lv_display_get_horizontal_resolution(display), lv_display_get_vertical_resolution(display));
-
-    // lv_indev_t * keypad = lv_indev_create();
-    // lv_indev_set_type(keypad, LV_INDEV_TYPE_KEYPAD);
-    // lv_indev_set_read_cb(keypad, keyboard_callback);
-    // lv_indev_set_group(keypad, lv_group_get_default());
+            return -1;
+        }
+    }
 
     // lv_demo_benchmark();
-
     // lv_demo_music();
-    // lv_demo_widgets();
-
+    // lv_demo_stress();
     // lv_demo_keypad_encoder();
+    // lv_demo_widgets();
 
     lv_obj_t * ta = lv_textarea_create(lv_screen_active());
     lv_textarea_set_placeholder_text(ta, "سلام");
@@ -181,7 +299,7 @@ int main(int argc, char * argv[], char * env[])
     lv_obj_set_size(ta, lv_pct(90), lv_pct(20));
     lv_textarea_set_align(ta, LV_TEXT_ALIGN_RIGHT);
     lv_obj_set_style_base_dir(ta, LV_BASE_DIR_RTL, 0);
-    lv_obj_set_style_text_font(ta, font, 0);
+    lv_obj_set_style_text_font(ta, font_default, 0);
 
     lv_obj_t * kb = lv_keyboard_create(lv_screen_active());
     lv_obj_set_style_text_font(kb, &lv_font_dejavu_16_persian_hebrew, 0);
@@ -197,19 +315,8 @@ int main(int argc, char * argv[], char * env[])
         lv_sleep_ms(time_till_next);
     }
 
-    // lv_indev_delete(keypad);
-
-    // lv_display_delete(display);
-
-    lv_group_delete(default_group);
-
-    lv_tiny_ttf_destroy(font);
-
-    lv_sdl_quit();
-
-    lv_deinit();
-
-    if (keyboard_fd > 0) close(keyboard_fd);
+    for (int i = sizeof(init_systems)/sizeof(init_systems[0]) - 1; i >= 0; i--)
+        init_systems[i].deinit(init_systems[i].data);
 
     return 0;
 }
