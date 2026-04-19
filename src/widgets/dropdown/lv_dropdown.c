@@ -219,7 +219,7 @@ void lv_dropdown_set_options(lv_obj_t * obj, const char * options)
 
     /*Allocate space for the new text*/
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
-    size_t len = lv_text_ap_calc_bytes_count(options) + 1;
+    size_t len = lv_text_ap_strlen(options) + 1;
 #else
     size_t len = lv_strlen(options) + 1;
 #endif
@@ -302,7 +302,7 @@ void lv_dropdown_add_option(lv_obj_t * obj, const char * option, uint32_t pos)
     /*Allocate space for the new option*/
     size_t old_len = lv_strlen(dropdown->options);
 #if LV_USE_ARABIC_PERSIAN_CHARS == 1
-    size_t ins_len = lv_text_ap_calc_bytes_count(option) + 1;
+    size_t ins_len = lv_text_ap_strlen(option) + 1;
 #else
     size_t ins_len = lv_strlen(option) + 1;
 #endif

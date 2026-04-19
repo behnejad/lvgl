@@ -1,4 +1,6 @@
-from .value import Value, ValueInput
+from ._version import __version__
+
+from .value import Value, ValueInput, CorruptedValue, CorruptedError
 from .lvgl import (
     curr_inst,
     LVDisplay,
@@ -49,6 +51,7 @@ from .lvgl import (
 from . import cmds as cmds
 
 __all__ = [
+    "__version__",
     "curr_inst",
     "LVDisplay",
     "LVDrawBuf",
@@ -68,6 +71,8 @@ __all__ = [
     "format_style_value",
     "Value",
     "ValueInput",
+    "CorruptedValue",
+    "CorruptedError",
     "LVCacheEntry",
     "LVCacheLRURB",
     "LVCacheLRURBIterator",
