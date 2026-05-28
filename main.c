@@ -71,24 +71,25 @@ void keyboard_callback (lv_indev_t * indev, lv_indev_data_t * data)
 
     if (ev.value == KEY_PRESS) return;
 
-    // if      (ev.code == 6) data->key = LV_KEY_NEXT;
-    // else if (ev.code == 11) data->key = LV_KEY_PREV;
-    // else if (ev.code == 2) data->key = '1';
-    // else if (ev.code == 7) data->key = '2';
-    // else if (ev.code == 12) data->key = '3';
-    // else if (ev.code == 8) data->key = '4';
-    // else if (ev.code == 13) data->key = '5';
-    // else if (ev.code == 18) data->key = '6';
-    // else if (ev.code == 9) data->key = '7';
-    // else if (ev.code == 14) data->key = '8';
-    // else if (ev.code == 19) data->key = '9';
-    // else if (ev.code == 10) data->key = '0';
-    // else if (ev.code == 5) data->key = ' ';
-    // else if (ev.code == 20) data->key = LV_KEY_ENTER;
-    // else if (ev.code == 4) data->key = LV_KEY_BACKSPACE;
-    // else if (ev.code == 3) data->key = LV_KEY_ESC;
-    // else return;
-
+#ifndef __x86_64__
+    if      (ev.code == 6) data->key = LV_KEY_NEXT;
+    else if (ev.code == 11) data->key = LV_KEY_PREV;
+    else if (ev.code == 2) data->key = '1';
+    else if (ev.code == 7) data->key = '2';
+    else if (ev.code == 12) data->key = '3';
+    else if (ev.code == 8) data->key = '4';
+    else if (ev.code == 13) data->key = '5';
+    else if (ev.code == 18) data->key = '6';
+    else if (ev.code == 9) data->key = '7';
+    else if (ev.code == 14) data->key = '8';
+    else if (ev.code == 19) data->key = '9';
+    else if (ev.code == 10) data->key = '0';
+    else if (ev.code == 5) data->key = ' ';
+    else if (ev.code == 20) data->key = LV_KEY_ENTER;
+    else if (ev.code == 4) data->key = LV_KEY_BACKSPACE;
+    else if (ev.code == 3) data->key = LV_KEY_ESC;
+    else return;
+#else
     if (ev.code >= sizeof(char_or_func)) return;
     // printf("type: %d, code: %d, value: %d\n", ev.type, ev.code, ev.value);
     if (char_or_func[ev.code] == 'c' && (char_index = to_char_keys_index(ev.code)) != -1)
@@ -107,7 +108,7 @@ void keyboard_callback (lv_indev_t * indev, lv_indev_data_t * data)
     else if (ev.code == 109) data->key = LV_KEY_NEXT; // page down
     else if (ev.code == 111) data->key = LV_KEY_DEL;
     else return;
-
+#endif
     last_state = LV_INDEV_STATE_PRESSED;
     data->state = last_state;
 }
@@ -248,9 +249,9 @@ struct
     {&font_default, font_init, font_deinit},
     {&group_default, group_init, group_deinit},
     // {&display_fb, fb_init, fb_deinit},
-    // {&keyboard_fd, keyboard_init, keyboard_deinit},
-    // {&keypad, keypad_init, keypad_deinit},
     {&sdl, sdl_init, sdl_deinit},
+    {&keyboard_fd, keyboard_init, keyboard_deinit},
+    {&keypad, keypad_init, keypad_deinit},
 };
 
 void ta_event_cb(lv_event_t * e)
@@ -296,7 +297,7 @@ int main(int argc, char * argv[], char * env[])
     lv_textarea_set_placeholder_text(ta, "سلام");
     lv_textarea_set_text(ta, "گچ پژ آلف");
     lv_obj_align(ta, LV_ALIGN_TOP_MID, 0, 10);
-    lv_obj_set_size(ta, lv_pct(90), lv_pct(20));
+    lv_obj_set_size(ta, lv_pct(90), lv_pct(40));
     lv_textarea_set_align(ta, LV_TEXT_ALIGN_RIGHT);
     lv_obj_set_style_base_dir(ta, LV_BASE_DIR_RTL, 0);
     lv_obj_set_style_text_font(ta, font_default, 0);
